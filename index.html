@@ -1,0 +1,51 @@
+<!doctype html>
+<!--
+  index.html — Home, el hub familiar. Una sola página; app.js dibuja las pantallas.
+  Sin frameworks ni build. La llave pública de Supabase está en config.js.
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Home</title>
+<meta name="theme-color" content="#2457C5">
+<meta name="description" content="Home: el hub familiar con la app Casa.">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="iconos/icono-192.png" type="image/png">
+<link rel="apple-touch-icon" href="iconos/icono-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Home">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+<a class="saltar" href="#principal">Saltar al contenido</a>
+<div id="sinconexion" class="sinconexion" role="status" hidden>Sin conexión</div>
+<div id="app"></div>
+<div id="avisos" class="avisos" role="status" aria-live="polite" aria-atomic="true"></div>
+<noscript><p style="padding:16px">Home necesita JavaScript para funcionar.</p></noscript>
+
+<script src="config.js"></script>
+<script src="vendor/supabase.js"></script>
+<script src="cliente.js"></script>
+<script src="util.js"></script>
+<script src="datos.js"></script>
+<script src="casa/semaforo.js"></script>
+<script src="casa/fotos.js"></script>
+<script src="casa/pedidos.js"></script>
+<script src="casa/bandeja.js"></script>
+<script src="casa/apuntes.js"></script>
+<script src="casa/lista.js"></script>
+<script src="casa/casa.js"></script>
+<script src="inicio.js"></script>
+<script src="app.js"></script>
+<script>
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
+  window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); });
+}
+</script>
+</body>
+</html>
