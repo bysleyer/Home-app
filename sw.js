@@ -5,7 +5,7 @@
  * NUNCA guarda ni toca peticiones a *.supabase.co (datos, auth y /storage/v1 con las fotos
  * de facturas: todo va siempre a la red).
  */
-const CACHE = "home-v3";
+const CACHE = "home-v4";
 const ARCHIVOS = [
   "./", "./index.html", "./estilos.css", "./manifest.json",
   "./config.js", "./cliente.js", "./util.js", "./datos.js", "./app.js", "./inicio.js",

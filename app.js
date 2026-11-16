@@ -156,6 +156,7 @@ const App = {
   pintarConexion() {
     const b = document.getElementById("sinconexion");
     if (b) b.hidden = navigator.onLine;
+    document.documentElement.style.setProperty("--alto-sinconexion", navigator.onLine ? "0px" : "32px"); // la cabecera pegajosa baja bajo el aviso
   },
 
   pintar() {

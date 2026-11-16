@@ -24,10 +24,10 @@ a{color:var(--acento)}
 #app{max-width:480px;margin:0 auto;min-height:100vh;min-height:100dvh;background:var(--blanco)}
 @media (min-width:520px){ #app{box-shadow:0 0 0 1px var(--borde)} }
 .marco{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
-.cab{position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:calc(14px + env(safe-area-inset-top)) 16px 10px;background:var(--blanco);border-bottom:1px solid var(--borde)}
+.cab{position:sticky;top:var(--alto-sinconexion,0px);z-index:10;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:calc(14px + env(safe-area-inset-top)) 16px 10px;background:var(--blanco);border-bottom:1px solid var(--borde)}
 .cab-izq{display:flex;flex-direction:column;min-width:0}
 .titulo{font-size:20px;font-weight:700;overflow-wrap:anywhere}
-.volver{align-self:flex-start;min-height:32px;padding:0;border:0;background:transparent;color:var(--acento);font-size:13px;font-weight:600;cursor:pointer}
+.volver{align-self:flex-start;min-height:44px;margin:-6px 0;padding:0 12px 0 0;border:0;background:transparent;color:var(--acento);font-size:13px;font-weight:600;cursor:pointer}
 .principal{flex:1;padding:16px 16px 24px}
 .centrado{display:flex;flex-direction:column;align-items:center;gap:12px;padding:56px 24px 24px;text-align:center}
 .centrado h1{font-size:26px;font-weight:700}
@@ -42,7 +42,7 @@ a{color:var(--acento)}
 .menu-nombre{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .menu{position:absolute;right:0;top:calc(100% + 6px);min-width:200px;background:var(--blanco);border:1px solid var(--borde-fuerte);border-radius:14px;box-shadow:0 8px 24px rgba(27,31,36,.15);padding:6px;display:flex;flex-direction:column;z-index:20}
 .menu button{min-height:44px;text-align:left;border:0;background:transparent;padding:0 12px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer}
-.menu button:hover{background:var(--gris)}
+@media (hover:hover) and (pointer:fine){.menu button:hover{background:var(--gris)}}
 
 /* Bloques */
 .pila{display:flex;flex-direction:column;gap:14px}
@@ -89,13 +89,14 @@ a{color:var(--acento)}
 .botones{display:flex;gap:8px;flex-wrap:wrap}
 .tres-col{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .tres-col .btn{padding:0 4px;font-size:13px}
-.dos-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.dos-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:end}
+@media (max-width:359px){.dos-col{grid-template-columns:minmax(0,1fr)}}
 
 /* Formularios */
 .campo{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600;min-width:0}
 .campo input{min-height:44px;padding:0 12px;border:1px solid var(--borde-fuerte);border-radius:10px;font-size:16px;font-weight:400;background:var(--blanco);min-width:0;width:100%}
 .campo-chico{font-size:12px;color:var(--suave)}
-.campo-chico input{min-height:40px;font-size:14px}
+.campo-chico input{min-height:44px;font-size:16px}
 .fila-form{display:flex;gap:8px;align-items:flex-end}
 .fila-form .btn{flex:none}
 .crece{flex:1}
@@ -110,8 +111,8 @@ fieldset.grupo legend{padding:0;margin-bottom:6px;font-size:13px;font-weight:600
 
 /* Semáforo */
 .semaforo{border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
-.semaforo-fila{display:flex;align-items:center;gap:10px}
-.punto{flex:none;width:14px;height:14px;border-radius:999px}
+.semaforo-fila{display:flex;align-items:flex-start;gap:10px}
+.punto{flex:none;width:14px;height:14px;border-radius:999px;margin-top:4px}
 .semaforo-frase{font-size:17px;font-weight:700}
 .semaforo-frase.pequeno{font-size:14px;font-weight:600}
 .semaforo-detalle{font-size:13px;color:var(--suave)}
@@ -148,8 +149,9 @@ fieldset.grupo legend{padding:0;margin-bottom:6px;font-size:13px;font-weight:600
 .avisos{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);max-width:min(440px,calc(100vw - 32px));background:var(--texto);color:var(--blanco);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;z-index:40}
 .avisos.visible{opacity:1}
 .avisos.error{background:var(--rojo)}
-.sinconexion{position:sticky;top:0;z-index:30;background:var(--ambar-fondo);color:var(--ambar-osc);text-align:center;font-size:13px;font-weight:700;padding:6px;border-bottom:1px solid #EBCB8B}
+.sinconexion{position:sticky;top:0;z-index:30;height:32px;display:flex;align-items:center;justify-content:center;background:var(--ambar-fondo);color:var(--ambar-osc);text-align:center;font-size:13px;font-weight:700;padding:0 8px;border-bottom:1px solid #EBCB8B}
 .sinconexion[hidden]{display:none}
+.recuadro a{align-self:flex-start;display:inline-flex;align-items:center;min-height:44px}
 
 @media (prefers-reduced-motion:reduce){ *{transition:none!important;animation:none!important;scroll-behavior:auto!important} }
 
@@ -175,3 +177,15 @@ fieldset.grupo legend{padding:0;margin-bottom:6px;font-size:13px;font-weight:600
 .visor-cuerpo{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;outline:none}
 .visor-img{display:block;width:100%;max-width:900px;height:auto;margin:0 auto;background:#fff}
 .visor-estado{padding:24px 16px;text-align:center;font-size:14px}
+
+/* ---------- Móvil (skill mobile-native) ---------- */
+html{-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;overscroll-behavior:none}
+/* Safari en iPhone da a los campos de fecha un ancho mínimo propio: en dos columnas se salían de la pantalla. */
+.campo input[type="date"]{-webkit-appearance:none;appearance:none;display:block;max-width:100%;height:44px;line-height:42px}
+.campo input[type="date"]::-webkit-date-and-time-value{text-align:left;margin:0}
+/* Controles: respuesta inmediata al tocar y sin seleccionar su texto con pulsación larga. */
+button,a,label.pastilla,.foto-mini{touch-action:manipulation}
+button,label.pastilla,.tabs button{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+/* Textos que escribe la gente (enlaces, palabras sin espacios): que partan en vez de salirse. */
+.tarjeta,.que,.meta,.nota-dueno,.respuesta,.texto-apunte,.item,h1,h2,p{overflow-wrap:anywhere;min-width:0}
+.visor-cuerpo{overscroll-behavior:contain}
