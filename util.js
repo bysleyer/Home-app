@@ -27,7 +27,8 @@ function h(tag, attrs, ...hijos) {
 const ICONOS = {
   casa: '<path d="M3 11l9-8 9 8"></path><path d="M5 10v10h5v-6h4v6h5V10"></path>',
   dinero: '<rect x="3" y="6" width="18" height="13" rx="2"></rect><path d="M3 10h18M16 14.5h2"></path>',
-  mas: '<path d="M12 5v14M5 12h14"></path>'
+  mas: '<path d="M12 5v14M5 12h14"></path>',
+  bolsa: '<path d="M6 8h12l1 12H5L6 8z"></path><path d="M9 8a3 3 0 0 1 6 0"></path>'
 };
 function icono(nombre, color) {
   const s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -84,15 +85,15 @@ function campoTexto(id, etiqueta, opts) {
 }
 
 /* Pastillas para elegir una opción (radios reales con aspecto de pastilla). */
-function pastillas(nombre, etiqueta, opciones, porDefecto) {
+function pastillas(nombre, etiqueta, opciones, porDefecto, alCambiar) {
   const actual = borradores[nombre] !== undefined ? borradores[nombre] : porDefecto;
   return h("fieldset", { class: "grupo" },
     h("legend", {}, etiqueta),
     h("div", { class: "pastillas" }, opciones.map(([valor, texto]) =>
       h("label", { class: "pastilla" },
         h("input", {
-          type: "radio", name: nombre, value: valor, checked: valor === actual,
-          onchange: () => { borradores[nombre] = valor; }
+          type: "radio", id: nombre + "-" + valor, name: nombre, value: valor, checked: valor === actual,
+          onchange: () => { borradores[nombre] = valor; if (alCambiar) alCambiar(valor); }
         }),
         h("span", {}, texto)))));
 }

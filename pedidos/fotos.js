@@ -1,5 +1,5 @@
 /*
- * casa/fotos.js — Fotos de las facturas (captura del carrito o del pago, con impuestos).
+ * pedidos/fotos.js — Fotos de las facturas (captura del carrito o del pago, con impuestos).
  * - Preparar: comprime cada imagen en el navegador (lado mayor 2000 px, JPEG).
  * - Selector del formulario "Pedir" (añadir, miniaturas, quitar).
  * - Ver: fila de miniaturas y visor a pantalla completa. Las URLs firmadas se piden

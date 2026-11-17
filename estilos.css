@@ -48,7 +48,6 @@ a{color:var(--acento)}
 .pila{display:flex;flex-direction:column;gap:14px}
 .tarjeta{border:1px solid var(--borde);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;background:var(--blanco)}
 .tarjeta.destacada{border-color:var(--borde-fuerte)}
-.tarjeta.fijada{border-color:var(--acento-borde);background:var(--acento-fondo)}
 .tarjeta.atenuada{background:var(--gris);border-color:var(--borde)}
 .tarjeta.atenuada .que{color:var(--secundario);font-weight:500}
 .fila-spaced{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
@@ -62,10 +61,8 @@ a{color:var(--acento)}
 .centro{text-align:center}
 .texto-suave{font-size:14px;color:var(--secundario)}
 .texto-fuerte{font-size:13px;font-weight:600}
-.texto-apunte{font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere}
 .respuesta{font-size:13px}
 .nota-dueno{font-size:13px;color:var(--suave);background:var(--gris);padding:8px 10px;border-radius:10px;overflow-wrap:anywhere}
-.etiqueta-mini{font-size:11px;font-weight:600;color:var(--secundario)}
 .recuadro{background:var(--gris);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;font-size:13px}
 .panel-linea{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--borde);padding-top:10px}
 .error{font-size:13px;color:var(--rojo);font-weight:600}
@@ -85,7 +82,9 @@ a{color:var(--acento)}
 .btn-verde{background:var(--verde);border-color:var(--verde);color:var(--blanco)}
 .btn-sec{background:var(--blanco)}
 .btn-grande{min-height:48px;font-size:15px;font-weight:700}
-.btn-texto{border-color:transparent;background:transparent;color:var(--secundario);padding:0 10px;font-size:13px}
+.btn-chico{min-height:44px;padding:0 14px;font-size:13px;flex:none}
+.btn-eliminar{color:var(--rojo);border-color:#E7B7B1}
+.btn-peligro{background:var(--rojo);border-color:var(--rojo);color:var(--blanco)}
 .botones{display:flex;gap:8px;flex-wrap:wrap}
 .tres-col{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .tres-col .btn{padding:0 4px;font-size:13px}
@@ -97,9 +96,6 @@ a{color:var(--acento)}
 .campo input{min-height:44px;padding:0 12px;border:1px solid var(--borde-fuerte);border-radius:10px;font-size:16px;font-weight:400;background:var(--blanco);min-width:0;width:100%}
 .campo-chico{font-size:12px;color:var(--suave)}
 .campo-chico input{min-height:44px;font-size:16px}
-.fila-form{display:flex;gap:8px;align-items:flex-end}
-.fila-form .btn{flex:none}
-.crece{flex:1}
 fieldset.grupo{border:0;margin:0;padding:0;min-width:0}
 fieldset.grupo legend{padding:0;margin-bottom:6px;font-size:13px;font-weight:600}
 .pastillas{display:flex;gap:6px;flex-wrap:wrap}
@@ -118,6 +114,15 @@ fieldset.grupo legend{padding:0;margin-bottom:6px;font-size:13px;font-weight:600
 .semaforo-detalle{font-size:13px;color:var(--suave)}
 .semaforo-nota{font-size:12px;color:var(--suave)}
 
+/* Semáforo (dueño) y "Mi dinero dice" */
+.pila-chica{display:flex;flex-direction:column;gap:6px;min-width:0}
+.mdd{background:var(--gris);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:3px;font-size:13px;border-left:4px solid var(--borde-fuerte)}
+.mdd.si{background:var(--verde-fondo);border-left-color:var(--verde)}
+.mdd.no{background:var(--ambar-fondo);border-left-color:var(--ambar)}
+.mdd-titulo{font-size:12px;font-weight:700;color:var(--secundario);text-transform:none}
+.mdd-linea{font-size:14px;font-weight:600;overflow-wrap:anywhere}
+.mdd-regla{font-size:13px;font-weight:600;color:var(--rojo);overflow-wrap:anywhere}
+
 /* Mosaicos del inicio */
 .mosaicos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .mosaico{position:relative;min-height:140px;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end;gap:4px;padding:14px;border-radius:18px;text-align:left;cursor:pointer;border:1px solid var(--borde)}
@@ -127,18 +132,10 @@ fieldset.grupo legend{padding:0;margin-bottom:6px;font-size:13px;font-weight:600
 .mosaico-desc{font-size:12px}
 .mosaico.oscuro{background:var(--texto);border-color:var(--texto);color:var(--blanco)}
 .mosaico.oscuro .mosaico-desc{color:#D5D9E0}
-.mosaico.casa{background:var(--acento-fondo);border-color:var(--acento-borde);color:var(--texto)}
-.mosaico.casa .mosaico-desc{color:var(--suave)}
+.mosaico.pedidos{background:var(--acento-fondo);border-color:var(--acento-borde);color:var(--texto)}
+.mosaico.pedidos .mosaico-desc{color:var(--suave)}
 .mosaico.pronto{border:1.5px dashed var(--borde-fuerte);color:var(--secundario);cursor:default;background:transparent}
 .insignia{margin-top:6px;font-size:12px;font-weight:700;background:var(--rojo);color:var(--blanco);padding:3px 9px;border-radius:999px}
-
-/* Lista de compras */
-.lista{list-style:none;margin:0;padding:0}
-.item{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid #EEF0F3;min-height:48px}
-.item-marca{display:flex;align-items:center;gap:12px;flex:1;min-height:48px;cursor:pointer;font-size:15px;min-width:0}
-.item-marca input{width:22px;height:22px;flex:none}
-.item-marca span{overflow-wrap:anywhere}
-.tachado{color:var(--secundario);text-decoration:line-through}
 
 /* Pestañas de abajo */
 .tabs{position:sticky;bottom:0;display:grid;border-top:1px solid var(--borde);padding:6px 8px calc(10px + env(safe-area-inset-bottom));background:var(--blanco);gap:2px}
@@ -151,7 +148,6 @@ fieldset.grupo legend{padding:0;margin-bottom:6px;font-size:13px;font-weight:600
 .avisos.error{background:var(--rojo)}
 .sinconexion{position:sticky;top:0;z-index:30;height:32px;display:flex;align-items:center;justify-content:center;background:var(--ambar-fondo);color:var(--ambar-osc);text-align:center;font-size:13px;font-weight:700;padding:0 8px;border-bottom:1px solid #EBCB8B}
 .sinconexion[hidden]{display:none}
-.recuadro a{align-self:flex-start;display:inline-flex;align-items:center;min-height:44px}
 
 @media (prefers-reduced-motion:reduce){ *{transition:none!important;animation:none!important;scroll-behavior:auto!important} }
 
@@ -187,5 +183,5 @@ html{-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;overs
 button,a,label.pastilla,.foto-mini{touch-action:manipulation}
 button,label.pastilla,.tabs button{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 /* Textos que escribe la gente (enlaces, palabras sin espacios): que partan en vez de salirse. */
-.tarjeta,.que,.meta,.nota-dueno,.respuesta,.texto-apunte,.item,h1,h2,p{overflow-wrap:anywhere;min-width:0}
+.tarjeta,.que,.meta,.nota-dueno,.respuesta,h1,h2,p{overflow-wrap:anywhere;min-width:0}
 .visor-cuerpo{overscroll-behavior:contain}

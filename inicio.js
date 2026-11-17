@@ -10,9 +10,9 @@ const APPS = [
     aviso: () => null
   },
   {
-    id: "casa", nombre: "Casa", roles: ["dueno", "ella"], estilo: "casa", icono: "casa",
-    descripcion: (rol) => (rol === "ella" ? "Pedir, apuntes y lista" : "Pedidos, apuntes y lista"),
-    abrir: () => Casa.entrar(),
+    id: "pedidos", nombre: "Pedidos", roles: ["dueno", "ella"], estilo: "pedidos", icono: "bolsa",
+    descripcion: (rol) => (rol === "ella" ? "Pedir y ver respuestas" : "Responder pedidos"),
+    abrir: () => AppPedidos.entrar(),
     aviso: (rol) => {
       if (rol === "dueno") {
         const n = Datos.pedidos.filter((p) => p.estado === "enviado").length;
@@ -37,7 +37,7 @@ const Inicio = {
       const av = a.aviso(rol);
       const desc = typeof a.descripcion === "function" ? a.descripcion(rol) : a.descripcion;
       return h("button", { type: "button", class: "mosaico " + (a.estilo || ""), onclick: a.abrir },
-        icono(a.icono, a.estilo === "casa" ? "#2457C5" : undefined),
+        icono(a.icono, a.estilo === "pedidos" ? "#2457C5" : undefined),
         h("span", { class: "mosaico-nombre" }, a.nombre),
         h("span", { class: "mosaico-desc" }, desc),
         av ? h("span", { class: "insignia" }, av) : null);

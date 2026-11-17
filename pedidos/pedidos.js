@@ -1,6 +1,7 @@
 /*
- * casa/pedidos.js — Pedidos, lado de ELLA: Inicio de Casa (mis pedidos) y formulario "Pedir".
- * También guarda las etiquetas y ayudas que comparte la bandeja del dueño.
+ * pedidos/pedidos.js — Pedidos, lado de ELLA: Inicio de Pedidos (mis pedidos) y formulario "Pedir".
+ * También guarda las etiquetas y ayudas que comparte la bandeja del dueño, y el
+ * "Eliminar" de pedidos cancelados (fotos y pedido), que usan los dos.
  * Ella nunca ve cálculos ni saldos: solo estado, fecha y la nota del dueño.
  */
 const Pedidos = {
@@ -20,11 +21,11 @@ const Pedidos = {
   /* Monto que cuenta: el aprobado si existe, si no el estimado. */
   montoCuenta(p) { return p.monto_aprobado !== null && p.monto_aprobado !== undefined ? Number(p.monto_aprobado) : Number(p.monto_estimado); },
 
-  /* "Aprobado este mes para lo que pediste" */
+  /* "Aprobado este mes": lo publicado por la base si es de este mes; si no, se suma aquí. */
   totalMes() {
     const r = Datos.resumen;
-    if (r && r.total_mes_ella !== null && r.total_mes_ella !== undefined) return Number(r.total_mes_ella);
     const mes = mesActual();
+    if (r && r.total_mes_ella !== null && r.total_mes_ella !== undefined && r.mes === mes) return Number(r.total_mes_ella);
     return Datos.pedidos
       .filter((p) => ["aprobado", "comprado", "cerrado"].includes(p.estado) && p.fecha_aprobada && String(p.fecha_aprobada).slice(0, 7) === mes)
       .reduce((a, p) => a + this.montoCuenta(p), 0);
@@ -47,7 +48,7 @@ const Pedidos = {
       p.pago === "reembolso" ? "reembolso" : null].filter(Boolean).join(" · ");
   },
 
-  /* ---- Inicio de Casa (ella) ---- */
+  /* ---- Inicio de Pedidos (ella) ---- */
   vistaInicio() {
     const sem = Semaforo.tarjetaElla();
     const orden = (p) => (p.estado === "cancelado" ? 1 : 0);
@@ -59,7 +60,7 @@ const Pedidos = {
         h("strong", { class: "total" }, dinero(this.totalMes()))),
       h("div", { class: "fila-titulo" },
         h("h2", {}, "Mis pedidos"),
-        h("button", { type: "button", class: "btn btn-primario", onclick: () => Casa.irA("pedir") }, "+ Pedir algo")),
+        h("button", { type: "button", class: "btn btn-primario", onclick: () => AppPedidos.irA("pedir") }, "+ Pedir algo")),
       mios.length ? null : h("p", { class: "texto-suave" }, "Todavía no has pedido nada."),
       mios.map((p) => this.tarjetaElla(p)));
   },
@@ -73,9 +74,10 @@ const Pedidos = {
       h("span", { class: "meta" }, this.metaElla(p)),
       resp ? h("span", { class: "respuesta" }, resp) : null,
       nota ? h("span", { class: "nota-dueno" }, nota) : null,
-      (p.estado === "enviado" || (p.estado === "aprobado" && p.pago === "dueno_paga")) ?
+      p.estado === "cancelado" ? this.zonaEliminar(p) : null,
+      (["enviado", "ahora_no", "hablemos"].includes(p.estado) || (p.estado === "aprobado" && p.pago === "dueno_paga")) ?
         h("div", { class: "botones" },
-          p.estado === "enviado" ? h("button", {
+          ["enviado", "ahora_no", "hablemos"].includes(p.estado) ? h("button", {
             type: "button", class: "btn btn-sec",
             onclick: (e) => this.cambiarEstado(e.currentTarget, p.id, "cancelado", "Pedido cancelado")
           }, "Cancelar pedido") : null,
@@ -91,6 +93,69 @@ const Pedidos = {
     if (error) { btn.disabled = false; return App.falloRed("No se pudo guardar el cambio."); }
     aviso(ok);
     await Datos.cargar(["pedidos"]);
+    App.pintar();
+  },
+
+  /* ---- Eliminar un pedido CANCELADO (con sus fotos) ---- */
+  confirmando: {},   // id -> true mientras se pide confirmación en la tarjeta
+  erroresEliminar: {},
+  eliminando: {},
+
+  /* Botón "Eliminar" o, ya pulsado, la confirmación en línea (sin ventanas emergentes). */
+  zonaEliminar(p) {
+    if (!this.confirmando[p.id]) {
+      return h("div", { class: "botones" },
+        h("button", { type: "button", class: "btn btn-sec btn-eliminar", onclick: () => this.pedirConfirmacion(p.id) }, "Eliminar"));
+    }
+    const err = this.erroresEliminar[p.id];
+    const trabajando = !!this.eliminando[p.id];
+    return h("div", { class: "panel-linea", role: "group", "aria-label": "Confirmar eliminar " + p.que },
+      h("p", { class: "texto-fuerte", id: "el-txt-" + p.id }, "¿Eliminar para siempre? Se borran también sus fotos."),
+      err ? h("p", { class: "error", role: "alert" }, err) : null,
+      h("div", { class: "botones" },
+        h("button", { type: "button", class: "btn btn-peligro", id: "el-si-" + p.id, disabled: trabajando, "aria-describedby": "el-txt-" + p.id,
+          onclick: (e) => this.eliminar(e.currentTarget, p) }, trabajando ? "Eliminando…" : "Sí, eliminar"),
+        h("button", { type: "button", class: "btn btn-sec", id: "el-no-" + p.id, disabled: trabajando, onclick: () => this.cancelarConfirmacion(p.id) }, "No")));
+  },
+
+  pedirConfirmacion(id) {
+    this.confirmando[id] = true; this.erroresEliminar[id] = "";
+    App.pintar();
+    const b = document.getElementById("el-no-" + id); if (b) b.focus();
+  },
+  cancelarConfirmacion(id) {
+    delete this.confirmando[id]; delete this.erroresEliminar[id];
+    App.pintar();
+  },
+
+  /* Primero se borran las fotos y después el pedido (así nunca quedan fotos sueltas sin dueño). */
+  async eliminar(btn, p) {
+    if (this.eliminando[p.id]) return;
+    this.eliminando[p.id] = true; this.erroresEliminar[p.id] = "";
+    App.pintar();
+    const sinRed = () => (navigator.onLine ? "" : " Sin conexión: inténtalo cuando vuelva internet.");
+    let texto = "";
+    try {
+      const rutas = Array.isArray(p.fotos) ? p.fotos.filter(Boolean) : [];
+      if (rutas.length) {
+        const r = await db.storage.from("facturas").remove(rutas);
+        if (r && r.error) texto = "No se pudieron borrar las fotos. El pedido sigue aquí." + sinRed();
+        // Storage no da error cuando sus reglas no le dejan borrar: solo devuelve menos objetos.
+        else if (r && Array.isArray(r.data) && r.data.length < rutas.length) texto = "No se pudieron borrar todas las fotos. El pedido sigue aquí.";
+      }
+      if (!texto) {
+        const r = await db.from("pedidos").delete().eq("id", p.id);
+        if (r && r.error) texto = "Las fotos se borraron, pero no se pudo eliminar el pedido. Inténtalo otra vez." + sinRed();
+      }
+    } catch (e) {
+      texto = "No se pudo eliminar." + sinRed();
+    }
+    delete this.eliminando[p.id];
+    if (texto) { this.erroresEliminar[p.id] = texto; App.pintar(); return; }
+    delete this.confirmando[p.id]; delete this.erroresEliminar[p.id];
+    if (typeof Fotos !== "undefined") (p.fotos || []).forEach((r) => { delete Fotos._urls[r]; });
+    aviso("Pedido eliminado");
+    await Datos.cargar(["pedidos", "resumen"]);
     App.pintar();
   },
 
@@ -173,7 +238,7 @@ const Pedidos = {
     Fotos.soltarTodas();
     limpiarBorradores("p-");
     aviso("Pedido enviado");
-    Casa.tab = "inicio";
+    AppPedidos.tab = "inicio";
     await Datos.cargar(["pedidos"]);
     App.pintar();
   }

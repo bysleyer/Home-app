@@ -1,12 +1,12 @@
 /*
- * app.js — Sesión, perfil y router entre pantallas (login, inicio, Casa, contraseña).
+ * app.js — Sesión, perfil y router entre pantallas (login, inicio, Pedidos, contraseña).
  * Toda la pantalla se vuelve a dibujar con App.pintar(); lo que la persona escribe
  * se guarda en `borradores` (util.js) para no perderlo cuando llega un cambio en vivo.
  */
 const App = {
   sesion: null,
   perfil: null,
-  vista: "cargando",     // cargando | login | sinperfil | inicio | casa | clave | errorperfil
+  vista: "cargando",     // cargando | login | sinperfil | inicio | pedidos | clave | errorperfil
   menuAbierto: false,
   loginError: "",
   loginAyuda: false,
@@ -57,7 +57,7 @@ const App = {
     this.vista = "inicio";
     this.pintar();
     this.suscribir();
-    await Datos.cargar(["pedidos", "resumen", "nombres"]);
+    await Datos.cargar(Datos.claves(perfil.rol));
     this.pintar();
   },
 
@@ -95,7 +95,8 @@ const App = {
   cerrarLocal() {
     this.desuscribir();
     this.sesion = null; this.perfil = null;
-    Datos.pedidos = []; Datos.apuntes = []; Datos.lista = []; Datos.resumen = null; Datos.nombres = {};
+    Datos.pedidos = []; Datos.resumen = null; Datos.ajustes = null; Datos.evaluaciones = {}; Datos.miDinero = null; Datos.nombres = {};
+    Semaforo.abierto = false; Semaforo.error = ""; Semaforo.guardando = false;
     // Fotos: cerrar el visor, olvidar los enlaces firmados de esta cuenta y liberar las fotos elegidas.
     if (typeof Fotos !== "undefined") {
       try { if (Fotos._visor) Fotos.cerrar(true); } catch (e) { /* nada que cerrar */ }
@@ -110,31 +111,44 @@ const App = {
   /* ---------- tiempo real ---------- */
   suscribir() {
     this.desuscribir();
-    ["pedidos", "apuntes", "lista_compras"].forEach((tabla) => {
-      try {
-        const canal = db.channel("home-" + tabla)
-          .on("postgres_changes", { event: "*", schema: "public", table: tabla }, () => this.cambio(tabla))
-          .subscribe();
-        this.canales.push(canal);
-      } catch (e) { /* si falla el tiempo real, la app sigue: se refresca al volver a la pestaña */ }
-    });
+    try {
+      // Ella: pedidos y resumen (semáforo). Dueño: además lo que escribe el puente de Mi dinero.
+      const tablas = ["pedidos", "resumen"];
+      if (this.perfil && this.perfil.rol === "dueno") tablas.push("evaluaciones", "mi_dinero_estado");
+      let canal = db.channel("home-pedidos");
+      tablas.forEach((t) => { canal = canal.on("postgres_changes", { event: "*", schema: "public", table: t }, () => this.cambio(t)); });
+      canal = canal.subscribe();
+      this.canales.push(canal);
+    } catch (e) { /* si falla el tiempo real, la app sigue: se refresca al volver a la pestaña */ }
   },
   desuscribir() {
     this.canales.forEach((c) => { try { db.removeChannel(c); } catch (e) { /* nada */ } });
     this.canales = [];
   },
 
+  /* Varios cambios seguidos (pedido, resumen, evaluación…) se juntan en una sola recarga. */
+  _pendientes: new Set(),
   cambio(tabla) {
+    this._pendientes.add(tabla);
     clearTimeout(this._tRefresco);
     this._tRefresco = setTimeout(async () => {
+      const tablas = Array.from(this._pendientes);
+      this._pendientes.clear();
       if (!this.perfil) return;
-      const clave = tabla === "lista_compras" ? "lista" : tabla;
-      await Datos.cargar([clave]);
-      if (this.vista === "inicio" || (this.vista === "casa" && Casa.relevante(tabla))) {
-        if (this.vista === "casa") Casa.marcarVistos();
+      const claves = new Set();
+      tablas.forEach((t) => {
+        if (t === "pedidos") { claves.add("pedidos"); claves.add("resumen"); }   // un cambio en pedidos recalcula el semáforo en la base
+        else if (t === "resumen") claves.add("resumen");
+        else if (t === "evaluaciones") claves.add("evaluaciones");
+        else if (t === "mi_dinero_estado") { claves.add("miDinero"); claves.add("resumen"); }
+      });
+      if (this.perfil.rol !== "dueno") { claves.delete("evaluaciones"); claves.delete("miDinero"); }
+      await Datos.cargar(Array.from(claves));
+      if (this.vista === "inicio" || (this.vista === "pedidos" && tablas.some((t) => AppPedidos.relevante(t)))) {
+        if (this.vista === "pedidos") AppPedidos.marcarVistos();
         this.pintar();
-      } else if (this.vista === "casa") {
-        Casa.marcarVistos();
+      } else if (this.vista === "pedidos") {
+        AppPedidos.marcarVistos();
       }
     }, 250);
   },
@@ -142,8 +156,8 @@ const App = {
   /* Recarga lo de la pantalla actual (al volver a la pestaña, al volver internet, botón Reintentar). */
   async refrescar() {
     if (!this.perfil) return;
-    if (this.vista === "inicio") await Datos.cargar(["pedidos", "resumen", "nombres"]);
-    else if (this.vista === "casa") { await Datos.cargar(["pedidos", "resumen", "apuntes", "lista", "nombres"]); Casa.marcarVistos(); }
+    if (this.vista === "inicio") await Datos.cargar(Datos.claves(this.perfil.rol));
+    else if (this.vista === "pedidos") { await Datos.cargar(Datos.claves(this.perfil.rol)); AppPedidos.marcarVistos(); }
     else return;
     this.pintar();
   },
@@ -183,7 +197,7 @@ const App = {
       case "errorperfil": return this.pantallaSimple("No se pudo cargar tu cuenta", "Revisa tu conexión e inténtalo otra vez.", true, true);
       case "cargando": return this.pantallaSimple("Home", "Cargando…", false);
       case "clave": return this.marco("Cambiar contraseña", this.pantallaClave(), null, "inicio");
-      case "casa": return this.marco(Casa.titulo(), this.conAviso(Casa.contenido()), Casa.nav(), "inicio");
+      case "pedidos": return this.marco(AppPedidos.titulo(), this.conAviso(AppPedidos.contenido()), AppPedidos.nav(), "inicio");
       default: return this.marco("Hola, " + this.perfil.nombre, this.conAviso(Inicio.vista()), null, null);
     }
   },
